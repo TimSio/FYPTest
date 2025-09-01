@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI 首页</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 800px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 { 
+            font-size: 3rem; 
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .endpoints {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .endpoint-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5rem;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        .endpoint-card:hover {
+            transform: translateY(-5px);
+        }
+        .endpoint-card a {
+            color: #ffd700;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .endpoint-card a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 FastAPI 应用</h1>
+        <p class="subtitle">高性能的现代Web框架</p>
+        
+        <div class="endpoints">
+            <div class="endpoint-card">
+                <h3>API 文档</h3>
+                <p><a href="/docs" target="_blank">Swagger UI</a></p>
+                <p><a href="/redoc" target="_blank">ReDoc</a></p>
+            </div>
+            
+            <div class="endpoint-card">
+                <h3>示例接口</h3>
+                <p><a href="/hello/世界" target="_blank">打招呼</a></p>
+                <p><a href="/api/health" target="_blank">健康检查</a></p>
+            </div>
+            
+            <div class="endpoint-card">
+                <h3>项目信息</h3>
+                <p>版本: 1.0.0</p>
+                <p>状态: 🟢 运行中</p>
+            </div>
+        </div>
+        
+        <p>✨ 首页已从单独的文件加载</p>
+    </div>
+</body>
+</html>
