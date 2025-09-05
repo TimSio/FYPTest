@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蛋白質體內流動模擬</title>
+    <title>蛋白質體內流動模擬系統</title>
     <style>
         * {
             margin: 0;
@@ -14,9 +14,9 @@
         
         body {
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            color: white;
+            color: #fff;
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
         }
         
         .container {
@@ -27,17 +27,14 @@
         
         header {
             text-align: center;
+            padding: 20px 0;
             margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .subtitle {
@@ -45,7 +42,7 @@
             opacity: 0.9;
         }
         
-        .content {
+        .main-content {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
@@ -53,45 +50,64 @@
         }
         
         .simulation-container {
-            flex: 2;
+            flex: 1;
             min-width: 300px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4);
             border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .canvas-container {
             position: relative;
+            width: 100%;
+            height: 400px;
             overflow: hidden;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
         }
         
         #simulation-canvas {
             width: 100%;
-            height: 500px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            height: 100%;
         }
         
-        .controls {
+        .info-panel {
             flex: 1;
-            min-width: 250px;
-            background: rgba(0, 0, 0, 0.3);
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.4);
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
         
-        .control-group {
-            margin-bottom: 20px;
+        .control-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
         
         h2 {
-            font-size: 1.5rem;
             margin-bottom: 15px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-            padding-bottom: 5px;
+            font-size: 1.8rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 8px;
         }
         
-        .slider-container {
-            margin-bottom: 15px;
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 200px;
         }
         
         label {
@@ -102,69 +118,75 @@
         
         input[type="range"] {
             width: 100%;
-            margin-bottom: 5px;
+            margin-bottom: 15px;
         }
         
-        .value-display {
-            text-align: right;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        button {
-            background: #4a90e2;
+        .btn {
+            background: linear-gradient(to right, #3494e6, #ec6ead);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 10px 20px;
+            border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.3s;
-            width: 100%;
+            transition: all 0.3s ease;
+            margin-right: 10px;
             margin-bottom: 10px;
         }
         
-        button:hover {
-            background: #357abd;
-        }
-        
-        .info-section {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 20px;
+        .btn:hover {
+            transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            margin-top: 20px;
         }
         
-        .info-content {
+        .info-cards {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 15px;
         }
         
-        .info-box {
+        .info-card {
             flex: 1;
-            min-width: 250px;
+            min-width: 200px;
             background: rgba(255, 255, 255, 0.1);
             padding: 15px;
             border-radius: 10px;
         }
         
-        .info-box h3 {
+        .info-card h3 {
             margin-bottom: 10px;
-            color: #4a90e2;
+            color: #ff9a8b;
+        }
+        
+        .protein-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 120px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #7fdbda;
         }
         
         footer {
             text-align: center;
-            margin-top: 30px;
             padding: 20px;
-            opacity: 0.7;
-            font-size: 0.9rem;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         @media (max-width: 768px) {
-            .content {
+            .main-content {
                 flex-direction: column;
             }
         }
@@ -173,73 +195,85 @@
 <body>
     <div class="container">
         <header>
-            <h1>蛋白質在體內流動模擬</h1>
-            <p class="subtitle">探索蛋白質如何通過血液循環系統在人體內運輸</p>
+            <h1>蛋白質體內流動模擬系統</h1>
+            <p class="subtitle">可視化蛋白質在人體血液循環系統中的運動</p>
         </header>
         
-        <div class="content">
-            <div class="simulation-container">
-                <canvas id="simulation-canvas"></canvas>
-            </div>
-            
+        <div class="control-panel">
+            <h2>控制面板</h2>
             <div class="controls">
-                <h2>控制面板</h2>
-                
                 <div class="control-group">
-                    <div class="slider-container">
-                        <label for="protein-count">蛋白質數量</label>
-                        <input type="range" id="protein-count" min="10" max="200" value="80">
-                        <div class="value-display"><span id="protein-count-value">80</span> 個蛋白質</div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <label for="flow-speed">流動速度</label>
-                        <input type="range" id="flow-speed" min="1" max="10" value="5">
-                        <div class="value-display"><span id="flow-speed-value">5</span> (1-10)</div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <label for="complexity">系統複雜度</label>
-                        <input type="range" id="complexity" min="1" max="10" value="7">
-                        <div class="value-display"><span id="complexity-value">7</span> (1-10)</div>
-                    </div>
+                    <label for="flow-speed">血流速度</label>
+                    <input type="range" id="flow-speed" min="1" max="10" value="5">
                 </div>
-                
                 <div class="control-group">
-                    <button id="btn-start">開始模擬</button>
-                    <button id="btn-pause">暫停</button>
-                    <button id="btn-reset">重置</button>
+                    <label for="protein-count">蛋白質數量</label>
+                    <input type="range" id="protein-count" min="5" max="30" value="15">
                 </div>
-                
                 <div class="control-group">
-                    <h3>當前狀態</h3>
-                    <div id="status">就緒</div>
+                    <label for="view-mode">視圖模式</label>
+                    <select id="view-mode" class="btn">
+                        <option value="normal">正常視圖</option>
+                        <option value="crossSection">血管截面</option>
+                    </select>
                 </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn" id="btn-start">開始模擬</button>
+                <button class="btn" id="btn-pause">暫停</button>
+                <button class="btn" id="btn-reset">重置</button>
             </div>
         </div>
         
-        <div class="info-section">
-            <h2>蛋白質在體內的運輸</h2>
-            <div class="info-content">
-                <div class="info-box">
-                    <h3>蛋白質的功能</h3>
-                    <p>蛋白質是人體必需的 macromolecules，參與幾乎所有生物過程，包括酶催化、細胞信號傳導、結構支持和免疫反應。</p>
+        <div class="main-content">
+            <div class="simulation-container">
+                <h2>蛋白質流動模擬</h2>
+                <div class="canvas-container">
+                    <canvas id="simulation-canvas"></canvas>
+                </div>
+                <div class="protein-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="protein-moving">15</div>
+                        <div>移動中蛋白質</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="protein-absorbed">0</div>
+                        <div>被吸收蛋白質</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="flow-rate">5</div>
+                        <div>流速級別</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h2>蛋白質功能資訊</h2>
+                <div class="info-cards">
+                    <div class="info-card">
+                        <h3>運輸功能</h3>
+                        <p>血紅蛋白等蛋白質負責在血液中運輸氧氣和營養物質到身體各個組織。</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>免疫作用</h3>
+                        <p>抗體蛋白識別並中和外來病原體，如細菌和病毒，保護身體免受感染。</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>組織修復</h3>
+                        <p>蛋白質參與細胞修復和再生過程，幫助傷口愈合和組織重建。</p>
+                    </div>
                 </div>
                 
-                <div class="info-box">
-                    <h3>血液運輸</h3>
-                    <p>蛋白質通過血液循環系統在全身運輸。它們可以作為激素、抗體或營養物質，被送到需要它們的器官和組織。</p>
-                </div>
+                <h2 style="margin-top: 20px;">蛋白質吸收過程</h2>
+                <p>蛋白質在消化系統中被分解為氨基酸，通過小腸壁吸收進入血液循環，然後被輸送到全身各處細胞進行利用。</p>
                 
-                <div class="info-box">
-                    <h3>吸收與利用</h3>
-                    <p>在消化過程中，蛋白質被分解為氨基酸，然後被吸收到血液中，通過門靜脈系統進入肝臟，進一步分配到全身。</p>
-                </div>
+                <h2 style="margin-top: 20px;">模擬說明</h2>
+                <p>此模擬展示了蛋白質分子(彩色圓點)在血管網絡中的流動過程。您可以調整參數觀察不同條件下蛋白質的運動情況。</p>
             </div>
         </div>
         
         <footer>
-            <p>© 2023 生物學教育模擬 | 本模擬為簡化版本，僅用于教育目的</p>
+            <p>蛋白質體內流動模擬系統 &copy; 2023 | 生物醫學可視化工具</p>
         </footer>
     </div>
 
@@ -248,292 +282,285 @@
             const canvas = document.getElementById('simulation-canvas');
             const ctx = canvas.getContext('2d');
             
-            // 設置canvas尺寸
+            // 調整Canvas大小以匹配容器
             function resizeCanvas() {
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
             }
             
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-            
-            // 控制元素
-            const proteinCountSlider = document.getElementById('protein-count');
-            const flowSpeedSlider = document.getElementById('flow-speed');
-            const complexitySlider = document.getElementById('complexity');
-            const proteinCountValue = document.getElementById('protein-count-value');
-            const flowSpeedValue = document.getElementById('flow-speed-value');
-            const complexityValue = document.getElementById('complexity-value');
-            const btnStart = document.getElementById('btn-start');
-            const btnPause = document.getElementById('btn-pause');
-            const btnReset = document.getElementById('btn-reset');
-            const statusDisplay = document.getElementById('status');
-            
-            // 更新滑塊值顯示
-            proteinCountSlider.addEventListener('input', () => {
-                proteinCountValue.textContent = proteinCountSlider.value;
-            });
-            
-            flowSpeedSlider.addEventListener('input', () => {
-                flowSpeedValue.textContent = flowSpeedSlider.value;
-            });
-            
-            complexitySlider.addEventListener('input', () => {
-                complexityValue.textContent = complexitySlider.value;
-            });
-            
-            // 模擬變量
+            // 初始化變數
             let animationId = null;
-            let isPaused = false;
-            let proteins = [];
-            let veins = [];
-            let lastTime = 0;
+            let isSimulating = false;
+            let flowSpeed = 5;
+            let proteinCount = 15;
+            let movingProteins = 15;
+            let absorbedProteins = 0;
             
-            // 蛋白質粒子類
+            // 蛋白質對象
             class Protein {
-                constructor(x, y, type) {
+                constructor() {
+                    this.reset();
+                    this.color = `hsl(${Math.random() * 360}, 70%, 65%)`;
+                }
+                
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = 5 + Math.random() * 8;
+                    this.speedX = (Math.random() - 0.5) * flowSpeed * 0.5;
+                    this.speedY = (Math.random() - 0.5) * flowSpeed * 0.5;
+                    // 確保蛋白質主要向右下方向移動
+                    this.speedX += flowSpeed * 0.1;
+                    this.speedY += flowSpeed * 0.05;
+                    this.absorbed = false;
+                    this.pulse = 0;
+                    this.pulseDirection = 0.05;
+                }
+                
+                update() {
+                    if (this.absorbed) {
+                        // 被吸收的蛋白質的動畫
+                        this.pulse += this.pulseDirection;
+                        if (this.pulse > 1 || this.pulse < 0) {
+                            this.pulseDirection *= -1;
+                        }
+                        return;
+                    }
+                    
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    
+                    // 如果蛋白質移動到畫布邊緣，重置它
+                    if (this.x > canvas.width || this.y > canvas.height || this.x < 0 || this.y < 0) {
+                        // 有一定機率被吸收
+                        if (Math.random() < 0.3) {
+                            this.absorbed = true;
+                            absorbedProteins++;
+                            movingProteins--;
+                            document.getElementById('protein-absorbed').textContent = absorbedProteins;
+                            document.getElementById('protein-moving').textContent = movingProteins;
+                        } else {
+                            this.reset();
+                        }
+                    }
+                }
+                
+                draw() {
+                    if (this.absorbed) {
+                        // 繪製被吸收的蛋白質
+                        ctx.globalAlpha = 0.6;
+                        ctx.fillStyle = this.color;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size * (0.8 + this.pulse * 0.4), 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                    } else {
+                        // 繪製移動中的蛋白質
+                        ctx.fillStyle = this.color;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // 添加光暈效果
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
+                        ctx.fillStyle = this.color;
+                        ctx.globalAlpha = 0.2;
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                    }
+                }
+            }
+            
+            // 血管對象
+            class BloodVessel {
+                constructor(x, y, width, height, isVein) {
                     this.x = x;
                     this.y = y;
-                    this.size = Math.random() * 4 + 3;
-                    this.speed = Math.random() * 2 + 1;
-                    this.direction = Math.random() * Math.PI * 2;
-                    this.type = type; // 可區分不同類型的蛋白質
-                    this.color = this.getColorByType();
-                    this.veinPath = null;
-                    this.pathProgress = 0;
+                    this.width = width;
+                    this.height = height;
+                    this.isVein = isVein; // 靜脈或動脈
                 }
                 
-                getColorByType() {
-                    const colors = ['#ff5252', '#4fc3f7', '#69f0ae', '#ffeb3b', '#ab47bc'];
-                    return colors[this.type % colors.length];
-                }
-                
-                update(deltaTime, flowSpeed) {
-                    if (this.veinPath) {
-                        // 跟隨血管路徑移動
-                        this.pathProgress += 0.001 * this.speed * flowSpeed;
-                        if (this.pathProgress >= 1) {
-                            this.pathProgress = 0;
-                            // 隨機選擇新的血管路徑
-                            this.veinPath = veins[Math.floor(Math.random() * veins.length)];
-                        }
-                        
-                        const point = this.veinPath.getPointAtProgress(this.pathProgress);
-                        this.x = point.x;
-                        this.y = point.y;
+                draw() {
+                    ctx.beginPath();
+                    
+                    if (this.isVein) {
+                        // 靜脈 - 藍色
+                        ctx.fillStyle = 'rgba(100, 150, 255, 0.2)';
+                        ctx.strokeStyle = 'rgba(70, 130, 255, 0.6)';
                     } else {
-                        // 隨機運動
-                        this.x += Math.cos(this.direction) * this.speed * flowSpeed;
-                        this.y += Math.sin(this.direction) * this.speed * flowSpeed;
-                        
-                        // 邊界檢查
-                        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-                            this.direction = Math.random() * Math.PI * 2;
-                        }
+                        // 動脈 - 紅色
+                        ctx.fillStyle = 'rgba(255, 100, 100, 0.2)';
+                        ctx.strokeStyle = 'rgba(220, 60, 60, 0.6)';
                     }
-                }
-                
-                draw(ctx) {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fillStyle = this.color;
+                    
+                    ctx.lineWidth = 2;
+                    ctx.rect(this.x, this.y, this.width, this.height);
                     ctx.fill();
-                    
-                    // 添加光暈效果
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
-                    const gradient = ctx.createRadialGradient(
-                        this.x, this.y, this.size,
-                        this.x, this.y, this.size * 1.5
-                    );
-                    gradient.addColorStop(0, this.color);
-                    gradient.addColorStop(1, 'transparent');
-                    ctx.fillStyle = gradient;
-                    ctx.fill();
-                }
-            }
-            
-            // 血管路徑類
-            class VeinPath {
-                constructor(points) {
-                    this.points = points;
-                }
-                
-                getPointAtProgress(progress) {
-                    const totalLength = this.points.length - 1;
-                    const exactIndex = progress * totalLength;
-                    const index = Math.floor(exactIndex);
-                    const segmentProgress = exactIndex - index;
-                    
-                    if (index >= this.points.length - 1) {
-                        return this.points[this.points.length - 1];
-                    }
-                    
-                    const x = this.lerp(this.points[index].x, this.points[index + 1].x, segmentProgress);
-                    const y = this.lerp(this.points[index].y, this.points[index + 1].y, segmentProgress);
-                    
-                    return { x, y };
-                }
-                
-                lerp(a, b, t) {
-                    return a + (b - a) * t;
-                }
-                
-                draw(ctx) {
-                    ctx.beginPath();
-                    ctx.moveTo(this.points[0].x, this.points[0].y);
-                    
-                    for (let i = 1; i < this.points.length; i++) {
-                        ctx.lineTo(this.points[i].x, this.points[i].y);
-                    }
-                    
-                    ctx.strokeStyle = 'rgba(100, 100, 255, 0.2)';
-                    ctx.lineWidth = 3;
                     ctx.stroke();
                 }
             }
             
-            // 初始化血管路徑
-            function createVeinPaths() {
-                veins = [];
-                
-                // 創建幾條主要血管路徑
-                for (let i = 0; i < 5; i++) {
-                    const points = [];
-                    const numPoints = 10 + Math.floor(Math.random() * 10);
-                    
-                    for (let j = 0; j < numPoints; j++) {
-                        const x = Math.random() * canvas.width;
-                        const y = Math.random() * canvas.height;
-                        points.push({ x, y });
-                    }
-                    
-                    veins.push(new VeinPath(points));
-                }
-            }
+            // 創建血管
+            const vessels = [
+                new BloodVessel(0, 50, canvas.width, 30, false),
+                new BloodVessel(0, canvas.height - 100, canvas.width, 40, true),
+                new BloodVessel(50, 150, 30, canvas.height - 200, false),
+                new BloodVessel(canvas.width - 80, 200, 40, canvas.height - 250, true)
+            ];
             
-            // 初始化蛋白質粒子
+            // 創建蛋白質
+            let proteins = [];
             function createProteins(count) {
                 proteins = [];
-                
                 for (let i = 0; i < count; i++) {
-                    const x = Math.random() * canvas.width;
-                    const y = Math.random() * canvas.height;
-                    const type = Math.floor(Math.random() * 5);
-                    const protein = new Protein(x, y, type);
-                    
-                    // 讓部分蛋白質跟隨血管路徑
-                    if (Math.random() > 0.5 && veins.length > 0) {
-                        protein.veinPath = veins[Math.floor(Math.random() * veins.length)];
-                    }
-                    
-                    proteins.push(protein);
+                    proteins.push(new Protein());
                 }
             }
             
-            // 繪製人體輪廓
-            function drawBodyOutline() {
-                ctx.beginPath();
-                
-                // 簡化的人體輪廓
-                ctx.moveTo(canvas.width * 0.4, canvas.height * 0.95); // 右腳
-                ctx.lineTo(canvas.width * 0.45, canvas.height * 0.7);  // 右腿
-                ctx.lineTo(canvas.width * 0.45, canvas.height * 0.3);  // 右側身體
-                ctx.lineTo(canvas.width * 0.5, canvas.height * 0.1);   // 右肩
-                
-                ctx.lineTo(canvas.width * 0.6, canvas.height * 0.1);   // 左肩
-                ctx.lineTo(canvas.width * 0.65, canvas.height * 0.3);  // 左側身體
-                ctx.lineTo(canvas.width * 0.65, canvas.height * 0.7);  // 左腿
-                ctx.lineTo(canvas.width * 0.7, canvas.height * 0.95);  // 左腳
-                
-                ctx.closePath();
-                
-                ctx.fillStyle = 'rgba(30, 30, 60, 0.2)';
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                // 繪製器官簡單表示
-                drawOrgan(canvas.width * 0.5, canvas.height * 0.25, 30, 'rgba(255, 100, 100, 0.2)'); // 心臟
-                drawOrgan(canvas.width * 0.45, canvas.height * 0.4, 40, 'rgba(100, 255, 100, 0.2)'); // 肝臟
-                drawOrgan(canvas.width * 0.6, canvas.height * 0.5, 35, 'rgba(100, 100, 255, 0.2)'); // 胃
-            }
-            
-            function drawOrgan(x, y, size, color) {
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, Math.PI * 2);
-                ctx.fillStyle = color;
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            // 繪製背景網格
+            function drawGrid() {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
                 ctx.lineWidth = 1;
-                ctx.stroke();
+                
+                // 繪製水平線
+                for (let y = 0; y < canvas.height; y += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+                
+                // 繪製垂直線
+                for (let x = 0; x < canvas.width; x += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
             }
             
             // 動畫循環
-            function animate(currentTime) {
-                if (isPaused) return;
-                
-                const deltaTime = lastTime ? currentTime - lastTime : 0;
-                lastTime = currentTime;
+            function animate() {
+                if (!isSimulating) return;
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // 繪製人體輪廓
-                drawBodyOutline();
+                // 繪製背景
+                const gradient = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, 0,
+                    canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) / 2
+                );
+                gradient.addColorStop(0, 'rgba(10, 20, 40, 0.8)');
+                gradient.addColorStop(1, 'rgba(5, 10, 20, 0.9)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                drawGrid();
                 
                 // 繪製血管
-                veins.forEach(vein => vein.draw(ctx));
+                vessels.forEach(vessel => vessel.draw());
                 
-                // 更新和繪製蛋白質
-                const flowSpeed = flowSpeedSlider.value / 5;
+                // 更新並繪製蛋白質
                 proteins.forEach(protein => {
-                    protein.update(deltaTime, flowSpeed);
-                    protein.draw(ctx);
+                    protein.update();
+                    protein.draw();
                 });
                 
                 animationId = requestAnimationFrame(animate);
             }
             
-            // 初始化模擬
-            function initSimulation() {
-                createVeinPaths();
-                createProteins(proteinCountSlider.value);
+            // 初始化
+            function init() {
+                resizeCanvas();
+                createProteins(proteinCount);
                 
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                }
+                // 添加事件監聽器
+                document.getElementById('btn-start').addEventListener('click', function() {
+                    if (!isSimulating) {
+                        isSimulating = true;
+                        animate();
+                    }
+                });
                 
-                lastTime = 0;
-                animate(0);
-                statusDisplay.textContent = "模擬運行中";
+                document.getElementById('btn-pause').addEventListener('click', function() {
+                    isSimulating = false;
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                    }
+                });
+                
+                document.getElementById('btn-reset').addEventListener('click', function() {
+                    isSimulating = false;
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                    }
+                    
+                    // 重置統計數據
+                    movingProteins = proteinCount;
+                    absorbedProteins = 0;
+                    document.getElementById('protein-moving').textContent = movingProteins;
+                    document.getElementById('protein-absorbed').textContent = absorbedProteins;
+                    
+                    // 重新創建蛋白質
+                    createProteins(proteinCount);
+                    
+                    // 重新繪製畫布
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawGrid();
+                    vessels.forEach(vessel => vessel.draw());
+                    proteins.forEach(protein => protein.draw());
+                });
+                
+                document.getElementById('flow-speed').addEventListener('input', function() {
+                    flowSpeed = this.value;
+                    document.getElementById('flow-rate').textContent = flowSpeed;
+                    
+                    // 更新所有蛋白質的速度
+                    proteins.forEach(protein => {
+                        if (!protein.absorbed) {
+                            protein.speedX = (Math.random() - 0.5) * flowSpeed * 0.5;
+                            protein.speedY = (Math.random() - 0.5) * flowSpeed * 0.5;
+                            protein.speedX += flowSpeed * 0.1;
+                            protein.speedY += flowSpeed * 0.05;
+                        }
+                    });
+                });
+                
+                document.getElementById('protein-count').addEventListener('input', function() {
+                    proteinCount = parseInt(this.value);
+                    movingProteins = proteinCount;
+                    document.getElementById('protein-moving').textContent = movingProteins;
+                    
+                    if (!isSimulating) {
+                        createProteins(proteinCount);
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        drawGrid();
+                        vessels.forEach(vessel => vessel.draw());
+                        proteins.forEach(protein => protein.draw());
+                    }
+                });
+                
+                // 初始繪製
+                drawGrid();
+                vessels.forEach(vessel => vessel.draw());
+                proteins.forEach(protein => protein.draw());
+                
+                // 更新統計數據顯示
+                document.getElementById('protein-moving').textContent = movingProteins;
+                document.getElementById('protein-absorbed').textContent = absorbedProteins;
+                document.getElementById('flow-rate').textContent = flowSpeed;
             }
             
-            // 事件監聽
-            btnStart.addEventListener('click', () => {
-                isPaused = false;
-                if (!animationId) {
-                    initSimulation();
-                }
-                statusDisplay.textContent = "模擬運行中";
-            });
+            // 初始化並開始模擬
+            window.addEventListener('resize', resizeCanvas);
+            init();
             
-            btnPause.addEventListener('click', () => {
-                isPaused = true;
-                statusDisplay.textContent = "模擬已暫停";
-            });
-            
-            btnReset.addEventListener('click', () => {
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                    animationId = null;
-                }
-                initSimulation();
-                statusDisplay.textContent = "模擬已重置";
-            });
-            
-            // 初始加載
-            initSimulation();
+            // 初始開始模擬
+            isSimulating = true;
+            animate();
         });
     </script>
 </body>
