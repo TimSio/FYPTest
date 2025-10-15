@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>製作細胞</title>
+  <title>POPC 分子結構視覺化</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.1.0/3Dmol-min.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -18,92 +19,279 @@
       text-align: center;
     }
     main {
-      max-width: 800px;
+      max-width: 1000px;
       margin: 2rem auto;
       background: white;
       padding: 2rem;
       border-radius: 0.5rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    label {
-      display: block;
-      margin: 1rem 0 0.5rem;
-      font-weight: bold;
-    }
-    select, button {
-      width: 100%;
-      padding: 0.6rem;
-      font-size: 1rem;
-      border-radius: 0.3rem;
-      border: 1px solid #ccc;
-      margin-bottom: 1rem;
-    }
     .preview-box {
       border: 2px dashed #cbd5e0;
       padding: 1rem;
       border-radius: 0.5rem;
-      min-height: 150px;
       background: #edf2f7;
       margin-bottom: 1.5rem;
+      height: 500px;
+      position: relative;
+    }
+    #viewer {
+      width: 100%;
+      height: 100%;
+      background: white;
     }
     .cell-preview {
       font-size: 1.2rem;
       color: #2d3748;
+      text-align: center;
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
     button {
       background-color: #3182ce;
       color: white;
       font-weight: bold;
       cursor: pointer;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 0.3rem;
+      margin: 0.5rem;
+      font-size: 1rem;
     }
     button:hover {
       background-color: #2b6cb0;
+    }
+    .control-panel {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .info-panel {
+      background: #e6fffa;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #38b2ac;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>製作細胞平台</h1>
+    <h1>POPC 分子結構視覺化</h1>
+    <p>顯示 POPC 脂質雙層的 3D 結構 (128個分子)</p>
   </header>
 
   <main>
-    <label for="popcSelect">選擇 POPC 類型：</label>
-    <select id="popcSelect">
-      <option value="">-- 請選擇 POPC --</option>
-      <option value="POPC-A">POPC-A</option>
-      <option value="POPC-B">POPC-B</option>
-      <option value="POPC-C">POPC-C</option>
-    </select>
-
-    <div class="preview-box" id="previewBox">
-      <p class="cell-preview">請選擇 POPC 類型以預覽細胞。</p>
+    <div class="info-panel">
+      <h3>POPC 脂質雙層結構</h3>
+      <p>此視覺化顯示包含 128 個 POPC 分子的脂質雙層結構，這是細胞膜的主要組成成分。</p>
     </div>
 
-    <button onclick="createCell()">製作細胞</button>
+    <div class="control-panel">
+      <select id="renderStyle">
+        <option value="stick">棒狀模型</option>
+        <option value="cartoon">卡通模型</option>
+        <option value="sphere">球棍模型</option>
+        <option value="line">線框模型</option>
+        <option value="surface">表面模型</option>
+      </select>
+      
+      <select id="colorScheme">
+        <option value="element">按元素著色</option>
+        <option value="chain">按鏈著色</option>
+        <option value="residue">按殘基著色</option>
+        <option value="spectrum">光譜著色</option>
+      </select>
+      
+      <button onclick="loadPOPC()">載入 POPC 結構</button>
+      <button onclick="resetView()" style="background-color: #38a169;">重置視角</button>
+      <button onclick="zoomToSelection()" style="background-color: #d69e2e;">縮放至選區</button>
+    </div>
+
+    <div class="preview-box">
+      <div id="viewer"></div>
+      <p class="cell-preview" id="placeholderText">點擊「載入 POPC 結構」來顯示分子</p>
+    </div>
+
+    <div style="text-align: center;">
+      <button onclick="downloadPDB()" style="background-color: #805ad5;">下載 PDB 檔案</button>
+    </div>
   </main>
 
   <script>
-    const popcSelect = document.getElementById("popcSelect");
-    const previewBox = document.getElementById("previewBox");
+    let viewer = null;
+    let currentModel = null;
 
-    popcSelect.addEventListener("change", () => {
-      const value = popcSelect.value;
-      if (value) {
-        previewBox.innerHTML = `<p class="cell-preview">細胞將使用 <strong>${value}</strong> 製作。</p>`;
+    // 初始化3D查看器
+    function initViewer() {
+      const element = document.getElementById('viewer');
+      if ($3Dmol && element) {
+        viewer = $3Dmol.createViewer(element, {
+          backgroundColor: 'white'
+        });
+        console.log('3Dmol 查看器初始化成功');
       } else {
-        previewBox.innerHTML = `<p class="cell-preview">請選擇 POPC 類型以預覽細胞。</p>`;
+        console.error('3Dmol 庫未正確載入或元素不存在');
       }
-    });
+    }
 
-    function createCell() {
-      const selected = popcSelect.value;
-      if (!selected) {
-        alert("請先選擇一個 POPC 類型！");
+    // 載入 POPC 結構
+    function loadPOPC() {
+      if (!viewer) {
+        initViewer();
+        if (!viewer) {
+          alert('3D 查看器初始化失敗，請刷新頁面重試');
+          return;
+        }
+      }
+      
+      viewer.clear();
+      document.getElementById('placeholderText').style.display = 'none';
+      
+      // 顯示載入中訊息
+      const loadingText = document.createElement('div');
+      loadingText.style.position = 'absolute';
+      loadingText.style.top = '50%';
+      loadingText.style.left = '50%';
+      loadingText.style.transform = 'translate(-50%, -50%)';
+      loadingText.style.zIndex = '1000';
+      loadingText.style.background = 'rgba(255,255,255,0.9)';
+      loadingText.style.padding = '1rem';
+      loadingText.style.borderRadius = '0.5rem';
+      loadingText.innerHTML = '載入 POPC 結構中...';
+      document.querySelector('.preview-box').appendChild(loadingText);
+
+      // 載入 PDB 檔案
+      fetch('popc_n128.pdb')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then(pdbData => {
+          try {
+            currentModel = viewer.addModel(pdbData, 'pdb');
+            applyRenderStyle();
+            viewer.zoomTo();
+            viewer.render();
+            console.log('POPC 結構載入成功');
+          } catch (error) {
+            console.error('解析 PDB 資料時出錯:', error);
+            alert('解析 PDB 檔案時發生錯誤: ' + error.message);
+          }
+        })
+        .catch(error => {
+          console.error('載入 PDB 檔案時出錯:', error);
+          alert('載入 PDB 檔案失敗: ' + error.message + '\n請確保 popc_n128.pdb 檔案在正確的位置。');
+        })
+        .finally(() => {
+          // 移除載入中訊息
+          if (document.querySelector('.preview-box').contains(loadingText)) {
+            document.querySelector('.preview-box').removeChild(loadingText);
+          }
+        });
+    }
+
+    // 應用渲染樣式
+    function applyRenderStyle() {
+      if (!viewer || !currentModel) return;
+      
+      const style = document.getElementById('renderStyle').value;
+      const colorScheme = document.getElementById('colorScheme').value;
+      
+      viewer.clearStyles();
+      
+      let styleConfig = {};
+      
+      switch(style) {
+        case 'stick':
+          styleConfig = { stick: { radius: 0.12 } };
+          break;
+        case 'cartoon':
+          styleConfig = { cartoon: { } };
+          break;
+        case 'sphere':
+          styleConfig = { sphere: { radius: 0.8 } };
+          break;
+        case 'line':
+          styleConfig = { line: { width: 1 } };
+          break;
+        case 'surface':
+          styleConfig = { sphere: { radius: 1.2 } };
+          break;
+      }
+      
+      // 應用顏色方案
+      switch(colorScheme) {
+        case 'element':
+          viewer.setStyle({}, styleConfig);
+          break;
+        case 'chain':
+          viewer.setStyle({}, { ...styleConfig, colorscheme: 'chain' });
+          break;
+        case 'residue':
+          viewer.setStyle({}, { ...styleConfig, colorscheme: 'residue' });
+          break;
+        case 'spectrum':
+          viewer.setStyle({}, { ...styleConfig, colorscheme: 'spectrum' });
+          break;
+      }
+      
+      viewer.render();
+    }
+
+    // 重置視角
+    function resetView() {
+      if (viewer && currentModel) {
+        viewer.zoomTo();
+        viewer.render();
+      }
+    }
+
+    // 縮放至選區
+    function zoomToSelection() {
+      if (viewer && currentModel) {
+        viewer.zoomTo({ resi: [1, 2, 3] }); // 縮放到前幾個殘基
+        viewer.render();
+      }
+    }
+
+    // 下載 PDB 檔案
+    function downloadPDB() {
+      if (!currentModel) {
+        alert('請先載入 POPC 結構');
         return;
       }
-      alert(`細胞已使用 ${selected} 成功製作！`);
+      
+      // 創建下載連結
+      const link = document.createElement('a');
+      link.href = 'popc_n128.pdb';
+      link.download = 'popc_n128.pdb';
+      link.click();
     }
+
+    // 事件監聽
+    document.addEventListener('DOMContentLoaded', function() {
+      initViewer();
+      
+      // 為控制項添加事件監聽
+      document.getElementById('renderStyle').addEventListener('change', applyRenderStyle);
+      document.getElementById('colorScheme').addEventListener('change', applyRenderStyle);
+      
+      // 自動載入 POPC 結構（可選）
+      // setTimeout(loadPOPC, 1000);
+    });
+
+    // 錯誤處理
+    window.addEventListener('error', function(e) {
+      console.error('全局錯誤:', e.error);
+    });
   </script>
 
 </body>
