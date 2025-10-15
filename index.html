@@ -1,543 +1,110 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蛋白質在人體內的流動模擬</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f8ff;
-            color: #333;
-            text-align: center;
-        }
-
-        h1 {
-            color: #2c3e50;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .simulation-area {
-            position: relative;
-            width: 100%;
-            height: 600px;
-            margin: 20px auto;
-            background-color: #e6f7ff;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        #body-outline {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            height: 95%;
-            width: auto;
-            opacity: 0.8;
-            z-index: 1;
-        }
-
-        .protein {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #3498db;
-            border-radius: 50%;
-            z-index: 3;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        .info-panel {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e6f7ff;
-            border-radius: 5px;
-            text-align: left;
-        }
-
-        .select-container {
-            margin: 15px 0;
-        }
-
-        select {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-        }
-
-        @media (max-width: 600px) {
-            .simulation-area {
-                height: 500px;
-            }
-            
-            .controls {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            button {
-                width: 100%;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>製作細胞</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f4f8;
+    }
+    header {
+      background-color: #2d3748;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin: 1rem 0 0.5rem;
+      font-weight: bold;
+    }
+    select, button {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border-radius: 0.3rem;
+      border: 1px solid #ccc;
+      margin-bottom: 1rem;
+    }
+    .preview-box {
+      border: 2px dashed #cbd5e0;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      min-height: 150px;
+      background: #edf2f7;
+      margin-bottom: 1.5rem;
+    }
+    .cell-preview {
+      font-size: 1.2rem;
+      color: #2d3748;
+    }
+    button {
+      background-color: #3182ce;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2b6cb0;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>蛋白質在人體內的流動模擬</h1>
-        
-        <div class="select-container">
-            <label for="protein-type">選擇蛋白質類型: </label>
-            <select id="protein-type">
-                <option value="blood">血液蛋白（如血紅蛋白）</option>
-                <option value="enzyme">酶蛋白</option>
-                <option value="antibody">抗體蛋白</option>
-                <option value="hormone">激素蛋白</option>
-            </select>
-        </div>
-        
-        <div class="select-container">
-            <label for="system-type">選擇系統: </label>
-            <select id="system-type">
-                <option value="circulatory">循環系統</option>
-                <option value="lymphatic">淋巴系統</option>
-                <option value="digestive">消化系統</option>
-            </select>
-        </div>
-        
-        <div class="simulation-area" id="simulation">
-            <svg id="body-outline" viewBox="0 0 300 600" width="300" height="600">
-                <!-- 更真實的人體輪廓 -->
-                <defs>
-                    <radialGradient id="skin-gradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                        <stop offset="0%" style="stop-color:#ffdfc4" />
-                        <stop offset="100%" style="stop-color:#f0c0a0" />
-                    </radialGradient>
-                </defs>
-                
-                <!-- 人體基本結構 -->
-                <g id="human-body">
-                    <!-- 頭部 -->
-                    <ellipse cx="150" cy="60" rx="40" ry="50" fill="url(#skin-gradient)" stroke="#d0a080" stroke-width="1" />
-                    
-                    <!-- 頸部 -->
-                    <path d="M130,100 L170,100 L165,120 L135,120 Z" fill="url(#skin-gradient)" stroke="#d0a080" stroke-width="1" />
-                    
-                    <!-- 軀幹 -->
-                    <path d="M110,120 L190,120 L200,320 L100,320 Z" fill="url(#skin-gradient)" stroke="#d0a080" stroke-width="1" />
-                    
-                    <!-- 左臂 -->
-                    <path d="M110,125 L90,125 L70,240 L85,250 L95,170 Z" fill="url(#skin-gradient)" stroke="#d0a080" stroke-width="1" />
-                    
-                    <!-- 右臂 -->
-                    <path d="M190,125 L210,125 L230,240 L215,250 L205,170 Z" fill="url(#skin-gradient)" stroke="#d0a080" stroke-width="1" />
-                    
-                    <!-- 左腿 -->
-                    <path d="M100,320 L140,320 L130,500 L110,510 L90,330 Z" fill="url(#skin-gradient)" stroke="#d0a080" stroke-width="1" />
-                    
-                    <!-- 右腿 -->
-                    <path d="M160,320 L200,320 L210,330 L190,510 L170,500 Z" fill="url(#skin-gradient)" stroke="#d0a080" stroke-width="1" />
-                    
-                    <!-- 左腳 -->
-                    <path d="M110,510 L130,500 L135,540 L95,540 Z" fill="url(#skin-gradient)" stroke="#d0a080" stroke-width="1" />
-                    
-                    <!-- 右腳 -->
-                    <path d="M170,500 L190,510 L205,540 L165,540 Z" fill="url(#skin-gradient)" stroke="#d0a080" stroke-width="1" />
-                </g>
-                
-                <!-- 循環系統 -->
-                <g id="circulatory-system" opacity="0">
-                    <!-- 主動脈和主要動脈 -->
-                    <path d="M150,120 C150,140 155,150 160,170 C165,190 150,210 150,230 
-                             C150,250 160,270 150,290 C140,310 150,320 150,340" 
-                          stroke="#F53D3D" stroke-width="4" fill="none" />
-                    
-                    <!-- 頭部血管 -->
-                    <path d="M150,120 C140,100 130,80 150,60" stroke="#F53D3D" stroke-width="2" fill="none" />
-                    <path d="M150,120 C160,100 170,80 150,60" stroke="#F53D3D" stroke-width="2" fill="none" />
-                    
-                    <!-- 左臂血管 -->
-                    <path d="M150,150 C120,160 100,180 85,250" stroke="#F53D3D" stroke-width="2" fill="none" />
-                    
-                    <!-- 右臂血管 -->
-                    <path d="M150,150 C180,160 200,180 215,250" stroke="#F53D3D" stroke-width="2" fill="none" />
-                    
-                    <!-- 左腿血管 -->
-                    <path d="M150,320 C130,350 120,420 110,510" stroke="#F53D3D" stroke-width="2" fill="none" />
-                    
-                    <!-- 右腿血管 -->
-                    <path d="M150,320 C170,350 180,420 190,510" stroke="#F53D3D" stroke-width="2" fill="none" />
-                    
-                    <!-- 微細血管網絡 -->
-                    <path d="M150,170 C170,175 180,180 190,185" stroke="#F53D3D" stroke-width="1" fill="none" />
-                    <path d="M150,170 C130,175 120,180 110,185" stroke="#F53D3D" stroke-width="1" fill="none" />
-                    <path d="M150,230 C170,235 180,240 190,245" stroke="#F53D3D" stroke-width="1" fill="none" />
-                    <path d="M150,230 C130,235 120,240 110,245" stroke="#F53D3D" stroke-width="1" fill="none" />
-                    <path d="M150,290 C170,295 180,300 190,305" stroke="#F53D3D" stroke-width="1" fill="none" />
-                    <path d="M150,290 C130,295 120,300 110,305" stroke="#F53D3D" stroke-width="1" fill="none" />
-                </g>
-                
-                <!-- 淋巴系統 -->
-                <g id="lymphatic-system" opacity="0">
-                    <!-- 主要淋巴管 -->
-                    <path d="M140,120 C130,150 135,180 140,210 
-                             C145,240 135,270 140,300 C145,330 140,350 140,380" 
-                          stroke="#67E667" stroke-width="3" fill="none" />
-                    
-                    <!-- 頸部淋巴結 -->
-                    <circle cx="140" cy="110" r="5" fill="#67E667" />
-                    
-                    <!-- 腋下淋巴結 -->
-                    <circle cx="110" cy="140" r="5" fill="#67E667" />
-                    <circle cx="190" cy="140" r="5" fill="#67E667" />
-                    
-                    <!-- 胸部淋巴管道 -->
-                    <path d="M140,200 C160,190 170,200 180,210" stroke="#67E667" stroke-width="2" fill="none" />
-                    <path d="M140,200 C120,190 110,200 100,210" stroke="#67E667" stroke-width="2" fill="none" />
-                    
-                    <!-- 腹部淋巴結 -->
-                    <circle cx="150" cy="250" r="4" fill="#67E667" />
-                    <circle cx="130" cy="270" r="4" fill="#67E667" />
-                    <circle cx="170" cy="270" r="4" fill="#67E667" />
-                    
-                    <!-- 腹股溝淋巴結 -->
-                    <circle cx="120" cy="320" r="5" fill="#67E667" />
-                    <circle cx="180" cy="320" r="5" fill="#67E667" />
-                    
-                    <!-- 腿部淋巴管 -->
-                    <path d="M120,320 C110,370 115,420 110,470" stroke="#67E667" stroke-width="2" fill="none" />
-                    <path d="M180,320 C190,370 185,420 190,470" stroke="#67E667" stroke-width="2" fill="none" />
-                </g>
-                
-                <!-- 消化系統 -->
-                <g id="digestive-system" opacity="0">
-                    <!-- 食道 -->
-                    <path d="M150,120 C148,130 152,140 150,150" stroke="#FFD166" stroke-width="4" fill="none" />
-                    
-                    <!-- 胃 -->
-                    <path d="M150,150 C170,155 180,165 175,180 C170,195 155,200 145,195 C135,190 130,180 135,165 C140,150 145,152 150,150" 
-                          fill="#FFD166AA" stroke="#FFD166" stroke-width="2" />
-                    
-                    <!-- 小腸 -->
-                    <path d="M145,195 C130,200 120,220 130,230 
-                             C140,240 160,235 170,245 
-                             C180,255 170,265 160,270 
-                             C150,275 140,265 130,270 
-                             C120,275 115,285 125,290" 
-                          stroke="#FFD166" stroke-width="4" fill="none" />
-                    
-                    <!-- 大腸 -->
-                    <path d="M125,290 C115,300 110,310 120,320 
-                             C130,330 150,330 170,320 
-                             C190,310 185,300 175,290" 
-                          stroke="#FFD166" stroke-width="5" fill="none" />
-                </g>
-            </svg>
-        </div>
-        
-        <div class="controls">
-            <button id="start-btn">開始模擬</button>
-            <button id="stop-btn">停止模擬</button>
-            <button id="reset-btn">重置</button>
-        </div>
-        
-        <div class="info-panel">
-            <h3 id="info-title">蛋白質資訊</h3>
-            <p id="info-content">請選擇蛋白質類型並開始模擬以查看資訊。</p>
-        </div>
+
+  <header>
+    <h1>製作細胞平台</h1>
+  </header>
+
+  <main>
+    <label for="popcSelect">選擇 POPC 類型：</label>
+    <select id="popcSelect">
+      <option value="">-- 請選擇 POPC --</option>
+      <option value="POPC-A">POPC-A</option>
+      <option value="POPC-B">POPC-B</option>
+      <option value="POPC-C">POPC-C</option>
+    </select>
+
+    <div class="preview-box" id="previewBox">
+      <p class="cell-preview">請選擇 POPC 類型以預覽細胞。</p>
     </div>
 
-    <script>
-        const simulationArea = document.getElementById('simulation');
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        const proteinType = document.getElementById('protein-type');
-        const systemType = document.getElementById('system-type');
-        const infoTitle = document.getElementById('info-title');
-        const infoContent = document.getElementById('info-content');
-        
-        // 系統路徑元素
-        const circulatorySystem = document.getElementById('circulatory-system');
-        const lymphaticSystem = document.getElementById('lymphatic-system');
-        const digestiveSystem = document.getElementById('digestive-system');
-        
-        let proteins = [];
-        let animationId;
-        let isSimulating = false;
-        
-        // 蛋白質資訊
-        const proteinInfo = {
-            blood: {
-                title: "血液蛋白（如血紅蛋白）",
-                content: "血紅蛋白是紅血球中的主要蛋白質，負責運輸氧氣從肺部到身體各組織。一個血紅蛋白分子可以結合四個氧分子。血液中還有其他蛋白質如白蛋白，幫助維持血液滲透壓和運輸各種物質。",
-                color: "#FF6B6B"
-            },
-            enzyme: {
-                title: "酶蛋白",
-                content: "酶是生化反應的催化劑，能夠加速體內化學反應速率而不被消耗。每種酶通常只催化一種特定類型的反應。例如，澱粉酶可以分解碳水化合物，脂肪酶分解脂肪。",
-                color: "#4ECDC4"
-            },
-            antibody: {
-                title: "抗體蛋白",
-                content: "抗體是免疫系統產生的Y形蛋白質，能夠識別並中和病原體如細菌和病毒。每種抗體都有特定的抗原結合位點，能夠與特定的外來物質結合。",
-                color: "#FFD166"
-            },
-            hormone: {
-                title: "激素蛋白",
-                content: "蛋白質激素是由內分泌腺體分泌的信使分子，通過血液傳輸到目標器官。例如，胰島素調節血糖水平，生長激素促進細胞生長和再生。",
-                color: "#67E667"
-            }
-        };
-        
-        // 獲取系統中的所有路徑
-        function getSystemPaths(systemElement) {
-            return systemElement.querySelectorAll('path');
-        }
-        
-        // 更新蛋白質資訊
-        function updateProteinInfo() {
-            const selectedProtein = proteinType.value;
-            infoTitle.textContent = proteinInfo[selectedProtein].title;
-            infoContent.textContent = proteinInfo[selectedProtein].content;
-        }
-        
-        // 更新系統顯示
-        function updateSystemDisplay() {
-            const selected = systemType.value;
-            
-            // 隱藏所有系統
-            circulatorySystem.setAttribute('opacity', '0');
-            lymphaticSystem.setAttribute('opacity', '0');
-            digestiveSystem.setAttribute('opacity', '0');
-            
-            // 顯示選中的系統
-            if (selected === 'circulatory') {
-                circulatorySystem.setAttribute('opacity', '1');
-            } else if (selected === 'lymphatic') {
-                lymphaticSystem.setAttribute('opacity', '1');
-            } else if (selected === 'digestive') {
-                digestiveSystem.setAttribute('opacity', '1');
-            }
-        }
-        
-        // 添加蛋白質
-        function addProtein() {
-            const protein = document.createElement('div');
-            protein.className = 'protein';
-            protein.style.backgroundColor = proteinInfo[proteinType.value].color;
-            
-            // 設置初始位置
-            const selectedSystem = systemType.value;
-            let systemElement;
-            
-            if (selectedSystem === 'circulatory') {
-                systemElement = circulatorySystem;
-            } else if (selectedSystem === 'lymphatic') {
-                systemElement = lymphaticSystem;
-            } else {
-                systemElement = digestiveSystem;
-            }
-            
-            const paths = getSystemPaths(systemElement);
-            const randomPathIndex = Math.floor(Math.random() * paths.length);
-            const pathElement = paths[randomPathIndex];
-            
-            const pathLength = pathElement.getTotalLength();
-            let distance = Math.random() * (pathLength * 0.2); // 開始於路徑的隨機位置
-            
-            // 設置蛋白質屬性
-            protein.setAttribute('data-system', selectedSystem);
-            protein.setAttribute('data-path-index', randomPathIndex);
-            protein.setAttribute('data-distance', distance);
-            
-            // 設置速度 - 依系統和蛋白質類型不同
-            let baseSpeed;
-            if (selectedSystem === 'circulatory') {
-                baseSpeed = 2;
-            } else if (selectedSystem === 'lymphatic') {
-                baseSpeed = 1;
-            } else {
-                baseSpeed = 1.5;
-            }
-            
-            // 不同蛋白質有微小的速度差異
-            let speedModifier;
-            if (proteinType.value === 'blood') {
-                speedModifier = 1.2;
-            } else if (proteinType.value === 'enzyme') {
-                speedModifier = 0.9;
-            } else if (proteinType.value === 'antibody') {
-                speedModifier = 1.0;
-            } else {
-                speedModifier = 0.8;
-            }
-            
-            protein.setAttribute('data-speed', baseSpeed * speedModifier * (0.8 + Math.random() * 0.4));
-            
-            const point = pathElement.getPointAtLength(distance);
-            protein.style.left = `${point.x + simulationArea.offsetWidth/2 - 150}px`;
-            protein.style.top = `${point.y}px`;
-            
-            simulationArea.appendChild(protein);
-            proteins.push(protein);
-        }
-        
-        // 更新蛋白質位置
-        function updateProteins() {
-            for (let i = proteins.length - 1; i >= 0; i--) {
-                const protein = proteins[i];
-                const system = protein.getAttribute('data-system');
-                const pathIndex = parseInt(protein.getAttribute('data-path-index'));
-                
-                let systemElement;
-                if (system === 'circulatory') {
-                    systemElement = circulatorySystem;
-                } else if (system === 'lymphatic') {
-                    systemElement = lymphaticSystem;
-                } else {
-                    systemElement = digestiveSystem;
-                }
-                
-                const paths = getSystemPaths(systemElement);
-                const pathElement = paths[pathIndex];
-                const pathLength = pathElement.getTotalLength();
-                
-                let distance = parseFloat(protein.getAttribute('data-distance'));
-                const speed = parseFloat(protein.getAttribute('data-speed'));
-                
-                distance += speed;
-                
-                // 如果蛋白質到達路徑末端，移除它
-                if (distance >= pathLength) {
-                    simulationArea.removeChild(protein);
-                    proteins.splice(i, 1);
-                    continue;
-                }
-                
-                protein.setAttribute('data-distance', distance);
-                
-                const point = pathElement.getPointAtLength(distance);
-                protein.style.left = `${point.x + simulationArea.offsetWidth/2 - 150}px`;
-                protein.style.top = `${point.y}px`;
-            }
-        }
-        
-        // 動畫循環
-        function animate() {
-            if (!isSimulating) return;
-            
-            if (Math.random() < 0.08) {  // 隨機添加新蛋白質
-                addProtein();
-            }
-            
-            updateProteins();
-            animationId = requestAnimationFrame(animate);
-        }
-        
-        // 開始模擬
-        startBtn.addEventListener('click', () => {
-            if (!isSimulating) {
-                isSimulating = true;
-                updateProteinInfo();
-                updateSystemDisplay();
-                animate();
-            }
-        });
-        
-        // 停止模擬
-        stopBtn.addEventListener('click', () => {
-            isSimulating = false;
-            cancelAnimationFrame(animationId);
-        });
-        
-        // 重置模擬
-        resetBtn.addEventListener('click', () => {
-            isSimulating = false;
-            cancelAnimationFrame(animationId);
-            
-            // 移除所有蛋白質
-            proteins.forEach(protein => {
-                if (protein.parentNode === simulationArea) {
-                    simulationArea.removeChild(protein);
-                }
-            });
-            
-            proteins = [];
-            updateSystemDisplay();
-            updateProteinInfo();
-        });
-        
-        // 當蛋白質類型改變時更新資訊
-        proteinType.addEventListener('change', updateProteinInfo);
-        
-        // 當系統類型改變時更新顯示
-        systemType.addEventListener('change', updateSystemDisplay);
-        
-        // 初始化
-        updateProteinInfo();
-        updateSystemDisplay();
-        
-        // 處理視窗大小調整
-        window.addEventListener('resize', () => {
-            // 重新計算蛋白質位置
-            if (proteins.length > 0) {
-                proteins.forEach(protein => {
-                    const system = protein.getAttribute('data-system');
-                    const pathIndex = parseInt(protein.getAttribute('data-path-index'));
-                    const distance = parseFloat(protein.getAttribute('data-distance'));
-                    
-                    let systemElement;
-                    if (system === 'circulatory') {
-                        systemElement = circulatorySystem;
-                    } else if (system === 'lymphatic') {
-                        systemElement = lymphaticSystem;
-                    } else {
-                        systemElement = digestiveSystem;
-                    }
-                    
-                    const paths = getSystemPaths(systemElement);
-                    const pathElement = paths[pathIndex];
-                    
-                    const point = pathElement.getPointAtLength(distance);
-                    protein.style.left = `${point.x + simulationArea.offsetWidth/2 - 150}px`;
-                    protein.style.top = `${point.y}px`;
-                });
-            }
-        });
-    </script>
+    <button onclick="createCell()">製作細胞</button>
+  </main>
+
+  <script>
+    const popcSelect = document.getElementById("popcSelect");
+    const previewBox = document.getElementById("previewBox");
+
+    popcSelect.addEventListener("change", () => {
+      const value = popcSelect.value;
+      if (value) {
+        previewBox.innerHTML = `<p class="cell-preview">細胞將使用 <strong>${value}</strong> 製作。</p>`;
+      } else {
+        previewBox.innerHTML = `<p class="cell-preview">請選擇 POPC 類型以預覽細胞。</p>`;
+      }
+    });
+
+    function createCell() {
+      const selected = popcSelect.value;
+      if (!selected) {
+        alert("請先選擇一個 POPC 類型！");
+        return;
+      }
+      alert(`細胞已使用 ${selected} 成功製作！`);
+    }
+  </script>
+
 </body>
 </html>
